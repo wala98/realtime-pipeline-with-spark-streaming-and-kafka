@@ -8,7 +8,7 @@ producer = KafkaProducer(
     value_serializer=lambda v: json.dumps(v).encode('utf-8')
 )
 
-with open(r"C:\Users\walam\Desktop\realtime-pipeline\producer\sensor_data.csv") as f:
+with open(r"sensor_data.csv") as f:
     reader = csv.DictReader(f)  # Automatically parses CSV headers
     for row in reader:
         # Convert temperature to float for numeric aggregation in Spark
