@@ -1,0 +1,66 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.3.0
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:5.3.0
+    hostname: kafka
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "9101:9101"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      CONFLUENT_METRICS_ENABLE: 'true'
+
+
+  spark:
+      image: apache/spark:3.5.0  # changed 3.5.5 to 3.5.0 (standard stable tag)
+      user: root
+      environment:
+        SPARK_MODE: master
+      volumes:
+        - ./spark:/opt/spark/app
+      working_dir: /opt/spark/app
+      command: >
+        /opt/spark/bin/spark-submit
+        --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0
+        spark_streaming.py
+      ports:
+        - "4040:4040"
+      depends_on:
+        - kafka
+
+
+
+#  spark:
+ #   image: apache/spark:3.5.5
+  #  environment:
+   #   SPARK_MODE: master
+    #volumes:
+     # - ./spark:/opt/spark/app   # mount your spark scripts here
+#    working_dir: /opt/spark/app
+ #   command: >
+  #    spark-submit
+   #   --packages org.apache.spark:spark-sql-kafka-0-10_2.13:3.5.0
+    #  /app/spark_streaming.py
+#    ports:
+ #     - "4040:4040"
